@@ -413,6 +413,30 @@ class Installer
             $errors++;
         }
 
+        // Check for 7z (warning only)
+        if (PHP_OS_FAMILY === 'Windows') {
+            exec('where 7z 2>NUL', $output, $result);
+        } else {
+            exec('which 7z 2>/dev/null', $output, $result);
+        }
+        if ($result === 0) {
+            $this->ansi->success("7z available");
+        } else {
+            $this->ansi->line($this->ansi->color("Warning: 7z not found (may be needed for archive extraction)", AnsiCliConsole::YELLOW));
+        }
+
+        // Check for unzip (warning only)
+        if (PHP_OS_FAMILY === 'Windows') {
+            exec('where unzip 2>NUL', $output, $result);
+        } else {
+            exec('which unzip 2>/dev/null', $output, $result);
+        }
+        if ($result === 0) {
+            $this->ansi->success("unzip available");
+        } else {
+            $this->ansi->line($this->ansi->color("Warning: unzip not found (may be needed for archive extraction)", AnsiCliConsole::YELLOW));
+        }
+
         if($errors)
             return 1;
 
