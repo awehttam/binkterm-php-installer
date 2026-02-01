@@ -62,7 +62,6 @@ php -d phar.readonly=0 build.php
 
 ## Notes
 
-- For production deployments, consider using git-based deployment workflows
 - Always backup your database and configuration files before upgrading
 - The installer creates `.env` and `config/binkp.json` files for new installations
 - The PHAR file is included in the repository for easy distribution
