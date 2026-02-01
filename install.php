@@ -818,6 +818,62 @@ class Installer
         }
         $this->ansi->line();
 
+        // Web server configuration
+        $this->ansi->section('Web Server Configuration');
+        $this->ansi->line("Configure your web server to serve BinktermPHP from the public_html directory.");
+        $this->ansi->line();
+        $this->ansi->line($this->ansi->color("Apache Example Configuration:", AnsiCliConsole::BOLD));
+        $this->ansi->line();
+
+        $apacheConfig = <<<APACHE
+<VirtualHost *:80>
+    ServerName your-bbs-domain.com
+    DocumentRoot {$this->installDir}/public_html
+
+    <Directory {$this->installDir}/public_html>
+        Options -Indexes +FollowSymLinks
+        AllowOverride All
+        Require all granted
+
+        # Enable PHP if using mod_php
+        <IfModule mod_php.c>
+            php_flag display_errors Off
+            php_value error_log {$this->installDir}/logs/php_errors.log
+        </IfModule>
+    </Directory>
+
+    # Deny access to sensitive directories
+    <DirectoryMatch "^{$this->installDir}/(config|data|scripts|vendor)">
+        Require all denied
+    </DirectoryMatch>
+
+    ErrorLog {$this->installDir}/logs/binkterm_error.log
+    CustomLog {$this->installDir}/logs/binkterm_access.log combined
+
+    # For HTTPS (recommended), also configure SSL:
+    # SSLEngine on
+    # SSLCertificateFile /path/to/cert.pem
+    # SSLCertificateKeyFile /path/to/key.pem
+</VirtualHost>
+APACHE;
+
+        $this->ansi->line($this->ansi->color($apacheConfig, AnsiCliConsole::CYAN));
+        $this->ansi->line();
+        $this->ansi->info("After configuring your web server, restart it to apply the changes:");
+        $this->ansi->line("  sudo systemctl restart apache2   (Debian/Ubuntu)");
+        $this->ansi->line("  sudo systemctl restart httpd     (RHEL/CentOS)");
+        $this->ansi->line();
+
+        // Thank you message
+        $this->ansi->section('Thank You!');
+        $this->ansi->success("Thank you for installing BinktermPHP!");
+        $this->ansi->line();
+        $this->ansi->line("We'd love to hear from you! Visit us at:");
+        $this->ansi->line($this->ansi->color("  https://claudes.lovelybits.org", AnsiCliConsole::BOLD, AnsiCliConsole::GREEN));
+        $this->ansi->line();
+        $this->ansi->line("Say hi, share your setup, or ask questions.");
+        $this->ansi->line();
+
         return 0;
     }
 }
