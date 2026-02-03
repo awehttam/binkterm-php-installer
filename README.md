@@ -24,8 +24,7 @@ chmod +x binkterm-installer.phar
 
 ```bash
 php binkterm-installer.phar [options]
-# or from source:
-php install.php [options]
+
 ```
 
 ### Options
