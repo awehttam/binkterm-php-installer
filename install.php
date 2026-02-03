@@ -738,7 +738,7 @@ class Installer
 
                 // Run setup.php
                 $this->ansi->info("Running setup.php...");
-                $setupScript = 'scripts/setup.php';
+                $setupScript = getcwd() . DIRECTORY_SEPARATOR . 'scripts' . DIRECTORY_SEPARATOR . 'setup.php';
                 if (!file_exists($setupScript)) {
                     throw new \Exception("setup.php not found at: " . $setupScript);
                 }
@@ -752,7 +752,7 @@ class Installer
 
                 // Run upgrade.php
                 $this->ansi->info("Running upgrade.php...");
-                $upgradeScript = 'scripts/upgrade.php';
+                $upgradeScript = getcwd() . DIRECTORY_SEPARATOR . 'scripts' . DIRECTORY_SEPARATOR . 'upgrade.php';
                 if (!file_exists($upgradeScript)) {
                     throw new \Exception("upgrade.php not found at: " . $upgradeScript);
                 }
