@@ -736,23 +736,21 @@ class Installer
                 }
                 $this->ansi->success("Dependencies installed");
 
-                // For new installations, run setup.php first
-                if (!$isUpgrade) {
-                    $this->ansi->info("Running setup.php...");
-                    $setupScript = $this->installDir . '/scripts/setup.php';
-                    if (!file_exists($setupScript)) {
-                        throw new \Exception("setup.php not found at: " . $setupScript);
-                    }
-
-                    passthru(PHP_BINARY . ' ' . escapeshellarg($setupScript), $setupResult);
-
-                    if ($setupResult !== 0) {
-                        throw new \Exception("setup.php failed with exit code: " . $setupResult);
-                    }
-                    $this->ansi->success("Database schema created");
+                // Run setup.php
+                $this->ansi->info("Running setup.php...");
+                $setupScript = $this->installDir . '/scripts/setup.php';
+                if (!file_exists($setupScript)) {
+                    throw new \Exception("setup.php not found at: " . $setupScript);
                 }
 
-                // Run upgrade.php (for both new installs and upgrades)
+                passthru(PHP_BINARY . ' ' . escapeshellarg($setupScript), $setupResult);
+
+                if ($setupResult !== 0) {
+                    throw new \Exception("setup.php failed with exit code: " . $setupResult);
+                }
+                $this->ansi->success("Database schema created");
+
+                // Run upgrade.php
                 $this->ansi->info("Running upgrade.php...");
                 $upgradeScript = $this->installDir . '/scripts/upgrade.php';
                 if (!file_exists($upgradeScript)) {
@@ -776,18 +774,11 @@ class Installer
                     chdir($oldDir);
                 }
 
-                if ($isUpgrade) {
-                    $this->ansi->info("You can run the upgrade manually:");
-                    $this->ansi->line("  cd " . $this->installDir);
-                    $this->ansi->line("  composer install --no-dev --optimize-autoloader");
-                    $this->ansi->line("  php scripts/upgrade.php");
-                } else {
-                    $this->ansi->info("You can run setup manually later:");
-                    $this->ansi->line("  cd " . $this->installDir);
-                    $this->ansi->line("  composer install --no-dev --optimize-autoloader");
-                    $this->ansi->line("  php scripts/setup.php");
-                    $this->ansi->line("  php scripts/upgrade.php");
-                }
+                $this->ansi->info("You can run the database setup manually:");
+                $this->ansi->line("  cd " . $this->installDir);
+                $this->ansi->line("  composer install --no-dev --optimize-autoloader");
+                $this->ansi->line("  php scripts/setup.php");
+                $this->ansi->line("  php scripts/upgrade.php");
             }
         } else {
             $this->ansi->info("Skipping database setup");
