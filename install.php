@@ -108,6 +108,29 @@ class Installer
     }
 
     /**
+     * Fetch all releases from GitHub
+     */
+    private function fetchAllReleases(): array
+    {
+        $url = self::GITHUB_API . self::GITHUB_REPO . '/releases';
+
+        $context = stream_context_create([
+            'http' => [
+                'header' => "User-Agent: BinktermPHP-Installer\r\n",
+                'timeout' => 30
+            ]
+        ]);
+
+        $response = @file_get_contents($url, false, $context);
+
+        if ($response === false) {
+            throw new \Exception("Failed to fetch releases from GitHub");
+        }
+
+        return json_decode($response, true);
+    }
+
+    /**
      * Fetch latest release info from GitHub
      */
     private function fetchReleaseInfo(): array
@@ -447,6 +470,24 @@ class Installer
 
         // Make path absolute
         $this->installDir = realpath($this->installDir) ?: $this->installDir;
+
+        // Fetch and display available versions
+        $this->ansi->info("Fetching available versions from GitHub...");
+        try {
+            $releases = $this->fetchAllReleases();
+            if (is_array($releases) && count($releases) > 0) {
+                $this->ansi->line();
+                $this->ansi->line($this->ansi->color('Available versions:', AnsiCliConsole::BOLD));
+                foreach ($releases as $release) {
+                    $version = $release['tag_name'];
+                    $prerelease = !empty($release['prerelease']) ? ' (pre-release)' : '';
+                    $this->ansi->line("  - {$version}: {$prerelease}");
+                }
+                $this->ansi->line();
+            }
+        } catch (\Exception $e) {
+            $this->ansi->line($this->ansi->color("Warning: Could not fetch versions from GitHub", AnsiCliConsole::YELLOW));
+        }
 
         // Get version
         $this->version = $this->ansi->prompt('Version to install', $this->version);
