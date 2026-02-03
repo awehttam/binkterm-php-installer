@@ -1,8 +1,6 @@
 # BinktermPHP Installer
 
-This installer is **experimental** and under active development.
-
-The author uses git to manage his boards, so this installer has not been extensively tested in production environments. Use at your own risk and make backups before installing or upgrading.
+This convenient installer streamlines the process of installing or upgrading BinktermPHP on your system, handling much of the heavy lifting automatically so you can get up and running quickly.
 
 ## Quick Start
 
