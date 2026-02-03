@@ -748,21 +748,7 @@ class Installer
                 if ($setupResult !== 0) {
                     throw new \Exception("setup.php failed with exit code: " . $setupResult);
                 }
-                $this->ansi->success("Database schema created");
-
-                // Run upgrade.php
-                $this->ansi->info("Running upgrade.php...");
-                $upgradeScript = getcwd() . DIRECTORY_SEPARATOR . 'scripts' . DIRECTORY_SEPARATOR . 'upgrade.php';
-                if (!file_exists($upgradeScript)) {
-                    throw new \Exception("upgrade.php not found at: " . $upgradeScript);
-                }
-
-                passthru(PHP_BINARY . ' ' . escapeshellarg($upgradeScript), $upgradeResult);
-
-                if ($upgradeResult !== 0) {
-                    throw new \Exception("upgrade.php failed with exit code: " . $upgradeResult);
-                }
-                $this->ansi->success("Database migrations applied");
+                $this->ansi->success("Database setup complete");
 
                 // Restore directory
                 chdir($oldDir);
@@ -778,7 +764,6 @@ class Installer
                 $this->ansi->line("  cd " . $this->installDir);
                 $this->ansi->line("  composer install --no-dev --optimize-autoloader");
                 $this->ansi->line("  php scripts/setup.php");
-                $this->ansi->line("  php scripts/upgrade.php");
             }
         } else {
             $this->ansi->info("Skipping database setup");
@@ -806,11 +791,9 @@ class Installer
             $this->ansi->line("       (This will install PHP dependencies)");
             $this->ansi->line("    3. Run: php scripts/setup.php");
             $this->ansi->line("       (This will create the database schema and admin user)");
-            $this->ansi->line("    4. Run: php scripts/upgrade.php");
-            $this->ansi->line("       (This will apply all database migrations)");
-            $this->ansi->line("    5. Configure your web server to point to public_html/");
-            $this->ansi->line("    6. Edit config/binkp.json to configure your uplinks");
-            $this->ansi->line("    7. Set up cron or your preferred service supervisor");
+            $this->ansi->line("    4. Configure your web server to point to public_html/");
+            $this->ansi->line("    5. Edit config/binkp.json to configure your uplinks");
+            $this->ansi->line("    6. Set up cron or your preferred service supervisor");
         }
         $this->ansi->line();
 
