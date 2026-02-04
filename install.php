@@ -907,6 +907,7 @@ APACHE;
                 $this->ansi->line();
             }
         }
+        echo "\n  ** And don't forget to restart your daemons!\n";
 
         return 0;
     }
