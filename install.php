@@ -140,7 +140,7 @@ class Installer
         if ($this->version === 'latest') {
             $url .= '/latest';
         } else {
-            $url .= '/tags/v' . ltrim($this->version, 'v');
+            $url .= '/tags/' . ltrim($this->version, 'v');
         }
 
         $context = stream_context_create([
@@ -605,10 +605,14 @@ class Installer
         $this->ansi->section('Downloading');
 
         $tempFile = null;
+        $installedVersion = null;
         try {
             $this->ansi->info("Fetching release information...");
             $release = $this->fetchReleaseInfo();
             $this->ansi->success("Found version: " . $release['tag_name']);
+
+            // Capture the actual version that was installed (strip 'v' prefix if present)
+            $installedVersion = ltrim($release['tag_name'], 'v');
 
             // Find the zip asset
             $zipUrl = null;
@@ -888,6 +892,21 @@ APACHE;
         $this->ansi->line();
         $this->ansi->line("Say hi, share your setup, or ask questions.");
         $this->ansi->line();
+
+        // Check for version-specific upgrading guide (only for upgrades)
+        if ($isUpgrade && $installedVersion) {
+            $docsDir = $this->installDir . '/docs';
+            $upgradingFile = $docsDir . '/UPGRADING_' . $installedVersion . '.md';
+
+            if (file_exists($upgradingFile)) {
+                $this->ansi->section('Important: Upgrading Guide');
+                $this->ansi->line($this->ansi->color('Additional upgrade steps may be required!', AnsiCliConsole::BOLD, AnsiCliConsole::YELLOW));
+                $this->ansi->line();
+                $this->ansi->line("Please read the upgrading guide for version " . $installedVersion . ":");
+                $this->ansi->line("  " . $upgradingFile);
+                $this->ansi->line();
+            }
+        }
 
         return 0;
     }
