@@ -21,6 +21,7 @@ class Installer
     private $version = 'latest';
     private $installDir = '.';
     private $ansi;
+    private $composerCmd = null;
 
     function __construct()
     {
@@ -62,11 +63,12 @@ class Installer
     }
 
     /**
-     * Check if composer is available
+     * Resolve the composer command to use, or return null if not found.
+     * Checks (in order): composer in PATH, composer.phar next to this script,
+     * composer.phar in the current working directory.
      */
-    private function checkComposer(): bool
+    private function getComposerCommand(): ?string
     {
-        // Try composer command
         if (PHP_OS_FAMILY === 'Windows') {
             exec('where composer 2>NUL', $output, $result);
         } else {
@@ -74,15 +76,18 @@ class Installer
         }
 
         if ($result === 0) {
-            return true;
+            return 'composer';
         }
 
-        // Try composer.phar in current directory
+        if (file_exists(__DIR__ . '/composer.phar')) {
+            return PHP_BINARY . ' ' . escapeshellarg(__DIR__ . '/composer.phar');
+        }
+
         if (file_exists('composer.phar')) {
-            return true;
+            return PHP_BINARY . ' composer.phar';
         }
 
-        return false;
+        return null;
     }
 
     /**
@@ -417,7 +422,7 @@ class Installer
         }
 
         // Check required extensions
-        $requiredExtensions = ['pdo', 'pdo_pgsql', 'json', 'curl', 'mbstring', 'zip'];
+        $requiredExtensions = ['pdo', 'pdo_pgsql', 'json', 'curl', 'mbstring', 'zip', 'dom'];
         $errors=0;
         foreach ($requiredExtensions as $ext) {
             if (extension_loaded($ext)) {
@@ -429,7 +434,8 @@ class Installer
         }
 
         // Check for composer
-        if ($this->checkComposer()) {
+        $this->composerCmd = $this->getComposerCommand();
+        if ($this->composerCmd !== null) {
             $this->ansi->success("Composer available");
         } else {
             $this->ansi->error("Composer not found (install composer or place composer.phar in current directory)");
@@ -706,29 +712,9 @@ class Installer
                 $oldDir = getcwd();
                 chdir($this->installDir);
 
-                // Check if composer is available
-                $composerCmd = 'composer';
-                if (PHP_OS_FAMILY === 'Windows') {
-                    // Try to find composer on Windows
-                    exec('where composer', $output, $result);
-                    if ($result !== 0) {
-                        // Try composer.phar
-                        if (file_exists('composer.phar')) {
-                            $composerCmd = PHP_BINARY . ' composer.phar';
-                        } else {
-                            throw new \Exception("Composer not found. Please install composer first.");
-                        }
-                    }
-                } else {
-                    exec('which composer', $output, $result);
-                    if ($result !== 0) {
-                        // Try composer.phar
-                        if (file_exists('composer.phar')) {
-                            $composerCmd = PHP_BINARY . ' composer.phar';
-                        } else {
-                            throw new \Exception("Composer not found. Please install composer first.");
-                        }
-                    }
+                $composerCmd = $this->composerCmd;
+                if ($composerCmd === null) {
+                    throw new \Exception("Composer not found. Please install composer first.");
                 }
 
                 // Run composer install
