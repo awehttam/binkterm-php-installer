@@ -422,7 +422,7 @@ class Installer
         }
 
         // Check required extensions
-        $requiredExtensions = ['pdo', 'pdo_pgsql', 'json', 'curl', 'mbstring', 'zip', 'dom', 'openssl'];
+        $requiredExtensions = ['pdo', 'pdo_pgsql', 'json', 'curl', 'mbstring', 'zip', 'dom', 'openssl','gmp'];
         $errors=0;
         foreach ($requiredExtensions as $ext) {
             if (extension_loaded($ext)) {
