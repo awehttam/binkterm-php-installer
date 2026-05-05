@@ -795,6 +795,8 @@ class Installer
             $this->ansi->line();
         }
 
+        ob_start();
+
         if ($dbSetupComplete) {
             $this->ansi->info("Next steps:");
             $this->ansi->line("    1. Configure your web server to point to:");
@@ -922,7 +924,13 @@ APACHE;
                 $this->ansi->line();
             }
         }
-        echo "\n  ** And don't forget to restart your daemons!\n";
+        $postInstallOutput = ob_get_clean();
+        $postInstallOutput = preg_replace('/\033\[[0-9;]*[mGKHF]/u', '', $postInstallOutput);
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'binkterm_');
+        file_put_contents($tmpFile, $postInstallOutput);
+        system('more ' . escapeshellarg($tmpFile));
+        unlink($tmpFile);
 
         return 0;
     }
