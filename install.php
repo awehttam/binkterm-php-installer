@@ -773,6 +773,19 @@ class Installer
         }
         $this->ansi->line();
 
+        // Run restart_daemons.sh if present
+        $restartScript = $this->installDir . '/scripts/restart_daemons.sh';
+        if (file_exists($restartScript)) {
+            $this->ansi->info("Restarting daemons...");
+            system('bash ' . escapeshellarg($restartScript), $restartResult);
+            if ($restartResult === 0) {
+                $this->ansi->success("Daemons restarted");
+            } else {
+                $this->ansi->error("restart_daemons.sh exited with code $restartResult");
+            }
+            $this->ansi->line();
+        }
+
         if ($dbSetupComplete) {
             $this->ansi->info("Next steps:");
             $this->ansi->line("    1. Configure your web server to point to:");
