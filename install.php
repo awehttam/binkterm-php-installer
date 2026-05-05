@@ -570,8 +570,13 @@ class Installer
             // BBS configuration
             $this->ansi->section('BBS Configuration');
             $systemName = $this->ansi->prompt('System name', 'My BBS');
-            $sysopName = $this->ansi->prompt('Sysop name');
-            $ftnAddress = $this->ansi->prompt('FTN address (e.g., 1:234/567)');
+            do {
+                $sysopName = $this->ansi->prompt('Sysop name');
+                if ($sysopName === '') {
+                    $this->ansi->error('Sysop name is required.');
+                }
+            } while ($sysopName === '');
+            $ftnAddress = $this->ansi->prompt('FTN address', '1:999/999');
 
             // Optional site URL
             $siteUrl = $this->ansi->prompt('Site URL (optional)', '');
