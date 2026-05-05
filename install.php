@@ -655,6 +655,13 @@ class Installer
             $this->extractZip($tempFile, $this->installDir);
             $this->ansi->success("Files extracted");
 
+            // GitHub ZIPs don't preserve executable bits — restore them for shell/PHP scripts
+            if (PHP_OS_FAMILY !== 'Windows') {
+                foreach (glob($this->installDir . '/scripts/*.{sh,php}', GLOB_BRACE) as $script) {
+                    chmod($script, 0755);
+                }
+            }
+
             // Only create config files for new installations
             if (!$isUpgrade) {
                 // Create .env file
