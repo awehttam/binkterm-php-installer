@@ -691,18 +691,20 @@ class Installer
             return 1;
         }
 
-        // Set up cron (or show instructions)
-        $this->ansi->section('Cron Setup');
-        if (PHP_OS_FAMILY === 'Windows') {
-            $this->ansi->info("Windows detected - you'll need to set up scheduled tasks manually");
-            $this->ansi->line("See cron.example for the tasks that need to be scheduled");
-        } else {
-            $setupCron = $this->ansi->prompt('Automatically configure crontab? (yes/no)', 'no');
-            if (strtolower(trim($setupCron)) === 'yes') {
-                $this->setupCron($this->installDir);
+        // Set up cron (or show instructions) - only for new installations
+        if (!$isUpgrade) {
+            $this->ansi->section('Cron Setup');
+            if (PHP_OS_FAMILY === 'Windows') {
+                $this->ansi->info("Windows detected - you'll need to set up scheduled tasks manually");
+                $this->ansi->line("See cron.example for the tasks that need to be scheduled");
             } else {
-                $this->ansi->info("You can set up cron manually later");
-                $this->ansi->line("See " . $this->installDir . "/cron.example for scheduled tasks");
+                $setupCron = $this->ansi->prompt('Automatically configure crontab? (yes/no)', 'no');
+                if (strtolower(trim($setupCron)) === 'yes') {
+                    $this->setupCron($this->installDir);
+                } else {
+                    $this->ansi->info("You can set up cron manually later");
+                    $this->ansi->line("See " . $this->installDir . "/cron.example for scheduled tasks");
+                }
             }
         }
 
@@ -812,50 +814,51 @@ class Installer
         }
         $this->ansi->line();
 
-        // Display cron example
-        $this->ansi->section('Cron/Scheduler Configuration');
-
-        if (PHP_OS_FAMILY === 'Windows') {
-            $this->ansi->line("Set up the equivalent to these cron rules using some sort of scheduling mechanism (like Task Scheduler):");
-        } else {
-            $this->ansi->line("Add these entries to your crontab (or configure equivalent in your service supervisor):");
-        }
-        $this->ansi->line();
-
-        // Read and display cron.example with path substitution
-        $cronExamplePath = __DIR__ . '/cron.example';
-        if (file_exists($cronExamplePath)) {
-            $cronContent = file_get_contents($cronExamplePath);
-            // Replace the example path with the actual installation path
-            $cronContent = str_replace('/path/to/binkterm', $this->installDir, $cronContent);
-
-            // Display the cron entries
-            $this->ansi->line($this->ansi->color($cronContent, AnsiCliConsole::CYAN));
-
-            $this->ansi->line();
+        // Display cron example (new installations only)
+        if (!$isUpgrade) {
+            $this->ansi->section('Cron/Scheduler Configuration');
 
             if (PHP_OS_FAMILY === 'Windows') {
-                $this->ansi->info("Use Windows Task Scheduler or another scheduling tool to run these scripts at the specified intervals");
+                $this->ansi->line("Set up the equivalent to these cron rules using some sort of scheduling mechanism (like Task Scheduler):");
             } else {
-                $this->ansi->info("To install these cron jobs, run:");
-                $this->ansi->line("  crontab -e");
-                $this->ansi->line();
-                $this->ansi->info("Or use a service supervisor like systemd, supervisord, or pm2");
+                $this->ansi->line("Add these entries to your crontab (or configure equivalent in your service supervisor):");
             }
-        } else {
-            $this->ansi->error("cron.example file not found in installer directory");
-            $this->ansi->line("Please refer to the documentation for scheduler setup instructions.");
+            $this->ansi->line();
+
+            // Read and display cron.example with path substitution
+            $cronExamplePath = __DIR__ . '/cron.example';
+            if (file_exists($cronExamplePath)) {
+                $cronContent = file_get_contents($cronExamplePath);
+                $cronContent = str_replace('/path/to/binkterm', $this->installDir, $cronContent);
+
+                $this->ansi->line($this->ansi->color($cronContent, AnsiCliConsole::CYAN));
+
+                $this->ansi->line();
+
+                if (PHP_OS_FAMILY === 'Windows') {
+                    $this->ansi->info("Use Windows Task Scheduler or another scheduling tool to run these scripts at the specified intervals");
+                } else {
+                    $this->ansi->info("To install these cron jobs, run:");
+                    $this->ansi->line("  crontab -e");
+                    $this->ansi->line();
+                    $this->ansi->info("Or use a service supervisor like systemd, supervisord, or pm2");
+                }
+            } else {
+                $this->ansi->error("cron.example file not found in installer directory");
+                $this->ansi->line("Please refer to the documentation for scheduler setup instructions.");
+            }
+            $this->ansi->line();
         }
-        $this->ansi->line();
 
-        // Web server configuration
-        $this->ansi->section('Web Server Configuration');
-        $this->ansi->line("Configure your web server to serve BinktermPHP from the public_html directory.");
-        $this->ansi->line();
-        $this->ansi->line($this->ansi->color("Apache Example Configuration:", AnsiCliConsole::BOLD));
-        $this->ansi->line();
+        // Web server configuration (new installations only)
+        if (!$isUpgrade) {
+            $this->ansi->section('Web Server Configuration');
+            $this->ansi->line("Configure your web server to serve BinktermPHP from the public_html directory.");
+            $this->ansi->line();
+            $this->ansi->line($this->ansi->color("Apache Example Configuration:", AnsiCliConsole::BOLD));
+            $this->ansi->line();
 
-        $apacheConfig = <<<APACHE
+            $apacheConfig = <<<APACHE
 <VirtualHost *:80>
     ServerName your-bbs-domain.com
     DocumentRoot {$this->installDir}/public_html
@@ -887,12 +890,13 @@ class Installer
 </VirtualHost>
 APACHE;
 
-        $this->ansi->line($this->ansi->color($apacheConfig, AnsiCliConsole::CYAN));
-        $this->ansi->line();
-        $this->ansi->info("After configuring your web server, restart it to apply the changes:");
-        $this->ansi->line("  sudo systemctl restart apache2   (Debian/Ubuntu)");
-        $this->ansi->line("  sudo systemctl restart httpd     (RHEL/CentOS)");
-        $this->ansi->line();
+            $this->ansi->line($this->ansi->color($apacheConfig, AnsiCliConsole::CYAN));
+            $this->ansi->line();
+            $this->ansi->info("After configuring your web server, restart it to apply the changes:");
+            $this->ansi->line("  sudo systemctl restart apache2   (Debian/Ubuntu)");
+            $this->ansi->line("  sudo systemctl restart httpd     (RHEL/CentOS)");
+            $this->ansi->line();
+        }
 
         // Thank you message
         $this->ansi->section('Thank You!');
