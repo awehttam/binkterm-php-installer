@@ -1,6 +1,6 @@
 # BinktermPHP Installer
 
-This convenient installer streamlines the process of installing or upgrading BinktermPHP on your system, handling much of the heavy lifting automatically so you can get up and running quickly.
+This convenient installer streamlines the process of installing or upgrading the [BinktermPHP](https://github.com/awehttam/binkterm-php) multi-network BBS software on your system, handling much of the heavy lifting automatically so you can get up and running quickly.
 
 ## Quick Start
 
