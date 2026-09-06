@@ -484,10 +484,29 @@ class Installer
             if (is_array($releases) && count($releases) > 0) {
                 $this->ansi->line();
                 $this->ansi->line($this->ansi->color('Available versions:', AnsiCliConsole::BOLD));
-                foreach ($releases as $release) {
-                    $version = $release['tag_name'];
-                    $prerelease = !empty($release['prerelease']) ? ' (pre-release)' : '';
-                    $this->ansi->line("  - {$version}: {$prerelease}");
+
+                $pageSize = 5;
+                $total = count($releases);
+                $shown = 0;
+                while ($shown < $total) {
+                    $page = array_slice($releases, $shown, $pageSize);
+                    foreach ($page as $release) {
+                        $version = $release['tag_name'];
+                        $prerelease = !empty($release['prerelease']) ? ' (pre-release)' : '';
+                        $this->ansi->line("  - {$version}: {$prerelease}");
+                    }
+                    $shown += count($page);
+
+                    if ($shown < $total) {
+                        $remaining = $total - $shown;
+                        $answer = strtolower($this->ansi->prompt(
+                            "Show more versions? ({$remaining} older) [y/N]"
+                        ));
+                        if (!in_array($answer, ['y', 'yes'], true)) {
+                            $this->ansi->line("  ... {$remaining} older version(s) not shown");
+                            break;
+                        }
+                    }
                 }
                 $this->ansi->line();
             }
