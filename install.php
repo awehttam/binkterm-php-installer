@@ -19,7 +19,7 @@ class Installer
     const GITHUB_API = 'https://api.github.com/repos/';
 
     private $version = 'latest';
-    private $installDir = '.';
+    private $installDir = 'binkterm-php';
     private $ansi;
     private $composerCmd = null;
 
