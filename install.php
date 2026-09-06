@@ -559,8 +559,8 @@ class Installer
             $dbConnected = false;
             $dbHost = 'localhost';
             $dbPort = '5432';
-            $dbName = 'binkterm';
-            $dbUser = 'binkterm';
+            $dbName = 'binktermphp';
+            $dbUser = 'binktermphp';
             $dbPass = '';
 
             while (!$dbConnected) {
